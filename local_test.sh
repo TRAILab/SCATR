@@ -1,0 +1,25 @@
+export PYTHONPATH=$PYTHONPATH:./
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export PORT=29532
+
+gpus=(${CUDA_VISIBLE_DEVICES//,/ })
+gpu_num=${#gpus[@]}
+
+config=$1
+checkpoint=$2
+
+echo "number of gpus: "${gpu_num}
+echo "config file: "${config}
+echo "checkpoint: "${checkpoint}
+
+if [ ${gpu_num} -gt 1 ]
+then
+    bash ./tools/dist_test.sh \
+        ${config} \
+        ${checkpoint} \
+        ${gpu_num}
+else
+    python ./tools/test.py \
+        ${config} \
+        ${checkpoint}
+fi

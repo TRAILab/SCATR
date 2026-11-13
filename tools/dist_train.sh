@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+CONFIG=$1
+GPUS=$2
+NNODES=${NNODES:-1}
+NODE_RANK=${NODE_RANK:-0}
+PORT=${PORT:-29500}
+MASTER_ADDR=${MASTER_ADDR:-"127.0.0.1"}
+
+export OMP_NUM_THREADS=36
+export MKL_NUM_THREADS=36
+
+PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
+
+# build ops
+cd projects/mmdet3d_plugin/ops
+python3 setup.py develop
+cd ../../../
+
+torchrun \
+    --nnodes=$NNODES \
+    --node_rank=$NODE_RANK \
+    --master_addr=$MASTER_ADDR \
+    --master_port=$PORT \
+    --nproc_per_node=$GPUS \
+    $(dirname "$0")/train.py \
+    $CONFIG \
+    --launcher pytorch ${@:3}
